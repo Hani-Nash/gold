@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gann Gold Time Square | XAU/USD</title>
+<style>
+:root{--bg:#0b1020;--panel:#121a2e;--line:#273653;--text:#edf2ff;--muted:#98a8c8;--gold:#f5c451;--green:#31d0aa;--red:#ff6b7d;--blue:#78a9ff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#182544 0,#0b1020 55%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}
+.wrap{max-width:1180px;margin:auto;padding:24px 16px 48px}.hero{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+h1{font-size:clamp(24px,4vw,38px);margin:0 0 8px}.sub{color:var(--muted);margin:0}.badge{border:1px solid #665526;background:#2c2617;color:var(--gold);padding:8px 12px;border-radius:999px;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.card{background:linear-gradient(145deg,rgba(20,30,52,.96),rgba(14,21,39,.96));border:1px solid var(--line);border-radius:18px;padding:18px;min-width:0;box-shadow:0 12px 30px #0002}.pricecard{grid-column:span 4}.formcard{grid-column:span 8}.wide{grid-column:span 12}.half{grid-column:span 6}
+.label{font-size:13px;color:var(--muted);margin-bottom:7px}.price{font-size:clamp(30px,4vw,44px);font-weight:750;letter-spacing:.3px;color:var(--gold);direction:ltr;text-align:right}.status{font-size:12px;color:var(--muted);margin-top:8px}.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}.field input,.field select{width:100%;background:#0a1121;border:1px solid #30415f;color:var(--text);border-radius:10px;padding:11px 12px;font:inherit;outline:none}.field input:focus,.field select:focus{border-color:var(--gold)}
+button{border:0;border-radius:10px;background:var(--gold);color:#17130a;font-weight:750;padding:12px 16px;font:inherit;cursor:pointer}button.secondary{background:#253451;color:var(--text);border:1px solid #3b4c6b}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{background:#0b1325;border:1px solid #253653;border-radius:12px;padding:14px}.metric .v{font-size:22px;font-weight:750;direction:ltr;text-align:right;margin-top:5px}.positive{color:var(--green)}.negative{color:var(--red)}.gold{color:var(--gold)}
+table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:12px 10px;text-align:right;border-bottom:1px solid #273653;font-size:14px}th{color:var(--muted);font-weight:600}td.num{direction:ltr;text-align:right;font-variant-numeric:tabular-nums}.pill{display:inline-block;border-radius:99px;padding:4px 9px;font-size:12px;background:#263653}
+canvas{width:100%;height:260px;display:block;background:#0a1121;border:1px solid #263653;border-radius:12px}.note{color:var(--muted);font-size:12px;line-height:1.7}.sectiontitle{font-size:18px;margin:0 0 14px}.error{color:var(--red)}.footer{color:var(--muted);font-size:12px;line-height:1.8;margin-top:16px}
+@media(max-width:800px){.pricecard,.formcard,.half{grid-column:span 12}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.row{grid-template-columns:1fr}.wrap{padding:16px 12px 32px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div><h1>مربع جان الزمني للذهب</h1><p class="sub">Gann Time Square • تحليل مستويات الزمن والسعر لزوج XAU/USD</p></div>
+    <span class="badge">نسخة تجريبية — لا تنفّذ صفقات</span>
+  </header>
+
+  <div class="grid">
+    <section class="card pricecard">
+      <div class="label">سعر الذهب الفوري (XAU/USD)</div>
+      <div id="price" class="price">—</div>
+      <div id="feedStatus" class="status">جارٍ الاتصال بمصدر البيانات المجاني…</div>
+      <div class="status">آخر تحديث: <span id="updated">—</span></div>
+      <div class="actions"><button id="refresh">تحديث السعر الآن</button></div>
+    </section>
+
+    <section class="card formcard">
+      <h2 class="sectiontitle">إعدادات نقطة الارتكاز</h2>
+      <div class="row">
+        <div class="field"><label for="anchorPrice">سعر الارتكاز (قاع/قمة)</label><input id="anchorPrice" type="number" step="0.01" value="4000"></div>
+        <div class="field"><label for="anchorDate">تاريخ ووقت الارتكاز</label><input id="anchorDate" type="datetime-local"></div>
+        <div class="field"><label for="unitMinutes">وحدة الزمن</label><select id="unitMinutes"><option value="60">ساعة لكل وحدة</option><option value="240">4 ساعات لكل وحدة</option><option value="1440" selected>يوم لكل وحدة</option><option value="10080">أسبوع لكل وحدة</option></select></div>
+        <div class="field"><label for="cycle">دورة جان الزمنية</label><select id="cycle"><option value="45">45° — ثُمن دورة</option><option value="90" selected>90° — ربع دورة</option><option value="180">180° — نصف دورة</option><option value="360">360° — دورة كاملة</option></select></div>
+        <div class="field"><label for="scale">مقياس السعر لكل دورة (دولار)</label><input id="scale" type="number" step="0.1" value="100"></div>
+        <div class="field"><label for="refreshRate">تحديث تلقائي</label><select id="refreshRate"><option value="0">إيقاف</option><option value="30" selected>كل 30 ثانية</option><option value="60">كل دقيقة</option><option value="300">كل 5 دقائق</option></select></div>
+      </div>
+      <div class="actions"><button id="calculate">احسب مربع جان</button><button class="secondary" id="useLive">استخدم السعر الحالي كارتكاز</button></div>
+      <p class="note">نموذج حسابي قابل للضبط: يقدّر الدورات الزمنية من وقت الارتكاز، ويعرض مستويات سعرية نظرية وفق المقياس الذي تختاره. لا توجد صيغة موحّدة واحدة لمربع جان؛ اضبط المقياس بما يلائم منهجك وسوقك.</p>
+    </section>
+
+    <section class="card wide">
+      <h2 class="sectiontitle">القراءة الحالية والانحراف</h2>
+      <div class="metrics">
+        <div class="metric"><div class="label">السعر المستخدم</div><div class="v gold" id="mPrice">—</div></div>
+        <div class="metric"><div class="label">الانحراف عن الارتكاز</div><div class="v" id="mDeviation">—</div></div>
+        <div class="metric"><div class="label">الزمن المنقضي</div><div class="v" id="mElapsed">—</div></div>
+        <div class="metric"><div class="label">التقدم داخل الدورة</div><div class="v" id="mCycle">—</div></div>
+      </div>
+    </section>
+
+    <section class="card half">
+      <h2 class="sectiontitle">مواعيد جان الزمنية القادمة</h2>
+      <table><thead><tr><th>الزاوية</th><th>الموعد المتوقع</th><th>المتبقي</th></tr></thead><tbody id="timeLevels"></tbody></table>
+    </section>
+    <section class="card half">
+      <h2 class="sectiontitle">مستويات السعر النظرية</h2>
+      <table><thead><tr><th>المستوى</th><th>السعر</th><th>فرق السعر الحالي</th></tr></thead><tbody id="priceLevels"></tbody></table>
+    </section>
+
+    <section class="card wide">
+      <h2 class="sectiontitle">خريطة الانحراف السعري</h2>
+      <canvas id="chart" width="1000" height="260" aria-label="رسم مستويات جان"></canvas>
+      <p class="note">الرسم يقارن السعر الحالي بمستويات السعر النظرية حول نقطة الارتكاز؛ لا يمثل توقعًا مضمونًا أو بيانات شموع تاريخية.</p>
+    </section>
+  </div>
+  <p class="footer">مصدر السعر الافتراضي: Gold-API (واجهة عامة قد تتغير أو تتوقف أو تقيّد الطلبات). إذا تعذّر الاتصال، أدخل السعر يدويًا في حقل الارتكاز أو جرّب الاستضافة عبر خادم وسيط. السعر الفوري قد يختلف عن سعر وسيط التداول لديك، خصوصًا XAUUSD لدى Exness. هذه الأداة تعليمية وليست نصيحة استثمارية.</p>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let livePrice=null, timer=null;
+const fmt=(n,d=2)=>Number.isFinite(n)?n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
+function setDefaultDate(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());$('anchorDate').value=d.toISOString().slice(0,16)}
+setDefaultDate();
+
+async function fetchPrice(){
+ const status=$('feedStatus'); status.textContent='جارٍ جلب السعر…'; status.classList.remove('error');
+ try{
+   const r=await fetch('https://api.gold-api.com/price/XAU',{cache:'no-store'});
+   if(!r.ok) throw new Error('HTTP '+r.status);
+   const data=await r.json();
+   const p=Number(data.price ?? data.rate ?? data.ask ?? data.bid);
+   if(!Number.isFinite(p)||p<=0) throw new Error('صيغة سعر غير معروفة');
+   livePrice=p; $('price').textContent=fmt(p,2); $('updated').textContent=new Date().toLocaleTimeString('ar-SA');
+   status.textContent='متصل بمصدر Gold-API • قد يتأخر السعر عن وسيطك';
+   calculate();
+ }catch(e){
+   status.textContent='تعذّر جلب السعر تلقائيًا. يمكنك إدخال سعر الارتكاز يدويًا أو المحاولة لاحقًا.';
+   status.classList.add('error');
+   $('updated').textContent='فشل الاتصال';
+   calculate();
+ }
+}
+function calculate(){
+ const anchor=Number($('anchorPrice').value), scale=Number($('scale').value);
+ const dt=new Date($('anchorDate').value), unit=Number($('unitMinutes').value)*60000, cycle=Number($('cycle').value);
+ const current=livePrice ?? anchor;
+ if(!Number.isFinite(anchor)||anchor<=0||!Number.isFinite(scale)||scale<=0||isNaN(dt.getTime()))return;
+ const elapsedMs=Math.max(0,Date.now()-dt.getTime()), units=elapsedMs/unit, degrees=units*360;
+ const inCycle=degrees%360;
+ $('mPrice').textContent=fmt(current,2);
+ const dev=current-anchor, pct=dev/anchor*100;
+ $('mDeviation').textContent=(dev>=0?'+':'')+fmt(dev,2)+' ('+(pct>=0?'+':'')+fmt(pct,2)+'%)';
+ $('mDeviation').className='v '+(dev>=0?'positive':'negative');
+ $('mElapsed').textContent=units<48?fmt(units,1)+' وحدة':fmt(units,0)+' وحدة';
+ $('mCycle').textContent=fmt(inCycle,1)+'°';
+ const angles=[45,90,135,180,225,270,315,360];
+ $('timeLevels').innerHTML=angles.map(a=>{
+   const targetUnits=Math.ceil((degrees+0.00001)/a)*a/360;
+   const target=new Date(dt.getTime()+targetUnits*unit);
+   const remaining=Math.max(0,target-Date.now());
+   return `<tr><td><span class="pill">${a}°</span></td><td>${target.toLocaleString('ar-SA',{dateStyle:'medium',timeStyle:'short'})}</td><td>${duration(remaining)}</td></tr>`;
+ }).join('');
+ const factors=[-2,-1,-.5,0,.5,1,2];
+ $('priceLevels').innerHTML=factors.map(f=>{
+   const level=anchor+scale*f, diff=current-level;
+   const label=f===0?'الارتكاز':(f>0?'+':'')+f+' × المقياس';
+   return `<tr><td>${label}</td><td class="num">${fmt(level,2)}</td><td class="num ${diff>=0?'positive':'negative'}">${diff>=0?'+':''}${fmt(diff,2)}</td></tr>`;
+ }).join('');
+ drawChart(anchor,scale,current);
+}
+function duration(ms){let m=Math.floor(ms/60000),d=Math.floor(m/1440);m%=1440;let h=Math.floor(m/60);m%=60;return (d?d+'ي ':'')+(h?h+'س ':'')+m+'د'}
+function drawChart(anchor,scale,current){
+ const c=$('chart'),ctx=c.getContext('2d'),w=c.width,h=c.height;
+ ctx.clearRect(0,0,w,h);ctx.fillStyle='#0a1121';ctx.fillRect(0,0,w,h);
+ const vals=[anchor-2*scale,anchor-scale,anchor-scale/2,anchor,anchor+scale/2,anchor+scale,anchor+2*scale,current];
+ let min=Math.min(...vals),max=Math.max(...vals);if(max===min){max+=1;min-=1}
+ const pad=48, top=22,bottom=h-25;
+ ctx.strokeStyle='#263653';ctx.fillStyle='#98a8c8';ctx.font='14px system-ui';ctx.textAlign='right';
+ for(let i=0;i<5;i++){let y=top+(bottom-top)*i/4;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(w-15,y);ctx.stroke();let v=max-(max-min)*i/4;ctx.fillText(fmt(v,2),pad-8,y+5)}
+ const yOf=v=>bottom-(v-min)/(max-min)*(bottom-top);
+ const levels=[{v:anchor-2*scale,t:'-2x'},{v:anchor-scale,t:'-1x'},{v:anchor-scale/2,t:'-0.5x'},{v:anchor,t:'Anchor'},{v:anchor+scale/2,t:'+0.5x'},{v:anchor+scale,t:'+1x'},{v:anchor+2*scale,t:'+2x'}];
+ levels.forEach((l,i)=>{ctx.strokeStyle=i===3?'#f5c451':'#385071';ctx.setLineDash(i===3?[]:[5,5]);ctx.beginPath();ctx.moveTo(pad,yOf(l.v));ctx.lineTo(w-15,yOf(l.v));ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=i===3?'#f5c451':'#98a8c8';ctx.textAlign='left';ctx.fillText(l.t,w-70,yOf(l.v)-5)});
+ ctx.strokeStyle='#31d0aa';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(pad,yOf(current));ctx.lineTo(w-15,yOf(current));ctx.stroke();ctx.fillStyle='#31d0aa';ctx.textAlign='left';ctx.fillText('Current '+fmt(current,2),pad+10,Math.max(top+12,yOf(current)-8));ctx.lineWidth=1;
+}
+$('refresh').addEventListener('click',fetchPrice);
+$('calculate').addEventListener('click',calculate);
+$('useLive').addEventListener('click',()=>{if(livePrice){$('anchorPrice').value=livePrice.toFixed(2);$('anchorDate').value=new Date().toISOString().slice(0,16);calculate()}else{$('feedStatus').textContent='لا يوجد سعر مباشر بعد؛ أدخل السعر يدويًا.'}});
+$('refreshRate').addEventListener('change',()=>{if(timer)clearInterval(timer);const s=Number($('refreshRate').value);if(s)timer=setInterval(fetchPrice,s*1000)});
+['anchorPrice','anchorDate','unitMinutes','cycle','scale'].forEach(id=>$(id).addEventListener('change',calculate));
+fetchPrice();timer=setInterval(fetchPrice,30000);$('refreshRate').value='30';
+</script>
+</body></html>
